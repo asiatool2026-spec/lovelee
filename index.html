@@ -96,7 +96,34 @@
         <div class="card">
           <div class="card-header">
             <h2>🔑 인증 설정 (.env)</h2>
-            <span class="info-tip" title="엘박스 로그인 상태를 유지하기 위해 브라우저 개발자도구(F12)의 Cookie 헤더값을 넣어주세요.">❔</span>
+            <button id="auth-help-btn" onclick="toggleAuthHelp()" style="
+              background:none; border:2px solid #6366f1; border-radius:50%;
+              width:24px; height:24px; color:#6366f1; font-size:0.8rem;
+              font-weight:700; cursor:pointer; line-height:1; flex-shrink:0;
+            " title="설정 방법 보기">?</button>
+          </div>
+          <!-- 인증 설정 도움말 -->
+          <div id="auth-help-box" style="display:none; margin:0 1.2rem 1rem; background:#0f172a; border:1px solid #334155; border-radius:10px; padding:1.2rem; font-size:0.87rem; color:#cbd5e1; line-height:1.7;">
+            <p style="margin:0 0 0.8rem; color:#f1f5f9; font-weight:700; font-size:0.95rem;">📋 Cookie 값 가져오는 방법</p>
+            <ol style="margin:0; padding-left:1.3rem;">
+              <li style="margin-bottom:0.6rem;"><strong style="color:#f1f5f9;">엘박스 접속 &amp; 로그인</strong><br>
+                <a href="https://lbox.kr" target="_blank" style="color:#818cf8;">lbox.kr</a> 또는 <a href="https://research.lbox.kr" target="_blank" style="color:#818cf8;">research.lbox.kr</a> 에서 로그인하세요.</li>
+              <li style="margin-bottom:0.6rem;"><strong style="color:#f1f5f9;">개발자 도구 열기</strong><br>
+                키보드에서 <code style="background:#1e293b; padding:1px 5px; border-radius:4px;">F12</code> 키를 누르세요. (Mac은 <code style="background:#1e293b; padding:1px 5px; border-radius:4px;">Command + Option + I</code>)</li>
+              <li style="margin-bottom:0.6rem;"><strong style="color:#f1f5f9;">Network 탭 클릭</strong><br>
+                상단 탭 중 <strong>Network</strong> (네트워크) 를 클릭하세요.</li>
+              <li style="margin-bottom:0.6rem;"><strong style="color:#f1f5f9;">아무 판례나 클릭</strong><br>
+                엘박스에서 아무 판례나 눌러보세요. Network 탭에 목록이 채워집니다.</li>
+              <li style="margin-bottom:0.6rem;"><strong style="color:#f1f5f9;">요청 항목 선택</strong><br>
+                목록에서 <strong>api</strong> 또는 <strong>references</strong> 가 포함된 항목을 클릭하세요.</li>
+              <li style="margin-bottom:0.6rem;"><strong style="color:#f1f5f9;">Cookie 복사</strong><br>
+                오른쪽에서 <strong>Headers</strong> 탭 → <strong>Request Headers</strong> 아래 <strong>cookie:</strong> 항목 전체를 드래그해서 복사하세요.</li>
+              <li><strong style="color:#f1f5f9;">여기에 붙여넣기</strong><br>
+                아래 텍스트박스에 붙여넣고 <strong>설정 저장</strong> 버튼을 누르면 완료입니다.</li>
+            </ol>
+            <p style="margin:0.8rem 0 0; padding:0.6rem 0.8rem; background:#1e293b; border-radius:6px; color:#94a3b8; font-size:0.8rem;">
+              ⚠️ Cookie 값은 로그인 정보와 같습니다. 타인과 공유하지 마세요. 로그아웃하거나 일정 시간이 지나면 만료됩니다.
+            </p>
           </div>
           <div class="card-body">
             <div class="form-group">

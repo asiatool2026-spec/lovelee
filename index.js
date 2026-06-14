@@ -1,3 +1,13 @@
+// ── 인증 설정 도움말 토글 ──────────────────────────────
+function toggleAuthHelp() {
+  const box = document.getElementById('auth-help-box');
+  const btn = document.getElementById('auth-help-btn');
+  const isOpen = box.style.display !== 'none';
+  box.style.display = isOpen ? 'none' : 'block';
+  btn.style.background = isOpen ? 'none' : '#6366f1';
+  btn.style.color = isOpen ? '#6366f1' : '#fff';
+}
+
 // ── 인증 ──────────────────────────────
 const _CREDS = { u: 'lovelee', p: '230107' };
 let _authToken = sessionStorage.getItem('lbox_token') || '';
