@@ -13,6 +13,8 @@ import json
 import glob
 import base64
 import subprocess
+from dotenv import load_dotenv
+load_dotenv()
 import threading
 from datetime import datetime, timezone
 from typing import Dict, Tuple, Any
@@ -43,23 +45,57 @@ def _check_auth(headers: dict) -> bool:
     if not DASHBOARD_PASS:
         return True
     auth = headers.get("Authorization") or headers.get("authorization") or ""
-    if not auth.startswith("Basic "):
-        return False
-    try:
-        decoded = base64.b64decode(auth[6:]).decode("utf-8")
-        user, pwd = decoded.split(":", 1)
-        return user == DASHBOARD_USER and pwd == DASHBOARD_PASS
-    except Exception:
-        return False
+    # Bearer 토큰 (커스텀 로그인)
+    if auth.startswith("Bearer "):
+        return _check_token(auth[7:])
+    # Basic Auth (하위 호환)
+    if auth.startswith("Basic "):
+        try:
+            decoded = base64.b64decode(auth[6:]).decode("utf-8")
+            user, pwd = decoded.split(":", 1)
+            return user == DASHBOARD_USER and pwd == DASHBOARD_PASS
+        except Exception:
+            return False
+    return False
 
 
 def _unauthorized() -> Tuple[int, dict, bytes]:
     return (
         401,
-        {"WWW-Authenticate": 'Basic realm="LBOX Dashboard"',
-         "Content-Type": "text/plain; charset=utf-8"},
-        "인증이 필요합니다.".encode("utf-8"),
+        {"Content-Type": "application/json; charset=utf-8"},
+        json.dumps({"status": "unauthorized"}, ensure_ascii=False).encode(),
     )
+
+
+def _make_token() -> str:
+    import hmac, hashlib
+    if not DASHBOARD_PASS:
+        return ""
+    return hmac.new(DASHBOARD_PASS.encode(), DASHBOARD_USER.encode(), hashlib.sha256).hexdigest()
+
+
+def _check_token(token: str) -> bool:
+    if not DASHBOARD_PASS:
+        return True
+    return token == _make_token()
+
+
+def handle_login(body: bytes) -> Tuple[int, dict, bytes]:
+    try:
+        payload = json.loads(body)
+        username = payload.get("username", "").strip()
+        password = payload.get("password", "").strip()
+    except Exception:
+        return _json_err(400, "요청 형식 오류")
+
+    if not DASHBOARD_PASS:
+        # 비밀번호 미설정 시 항상 통과
+        return _json_ok({"token": ""})
+
+    if username == DASHBOARD_USER and password == DASHBOARD_PASS:
+        return _json_ok({"token": _make_token()})
+
+    return 401, {"Content-Type": "application/json; charset=utf-8"},         json.dumps({"status": "unauthorized"}, ensure_ascii=False).encode()
 
 
 # ──────────────────────────────────────────────
@@ -389,6 +425,11 @@ def handle_request(method: str, path: str, headers: dict, body: bytes) -> Tuple[
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Authorization",
         }, b""
+
+    # 로그인 엔드포인트 (인증 불필요)
+    clean_path_early = path.split("?")[0].rstrip("/")
+    if method == "POST" and clean_path_early == "/api/login":
+        return handle_login(body)
 
     # 인증 확인
     if not _check_auth(headers):

@@ -16,7 +16,62 @@
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
-  <div class="app-container">
+  <!-- 로그인 오버레이 -->
+  <div id="login-overlay" style="
+    position:fixed; inset:0; z-index:9999;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    display:flex; align-items:center; justify-content:center;
+  ">
+    <div style="
+      background:#1e293b; border:1px solid #334155;
+      border-radius:16px; padding:2.5rem 2rem;
+      width:100%; max-width:380px; box-shadow:0 25px 50px rgba(0,0,0,0.5);
+    ">
+      <div style="text-align:center; margin-bottom:2rem;">
+        <div style="
+          width:56px; height:56px; border-radius:14px;
+          background:linear-gradient(135deg,#6366f1,#8b5cf6);
+          display:inline-flex; align-items:center; justify-content:center;
+          font-size:1.6rem; font-weight:800; color:#fff; margin-bottom:1rem;
+        ">L</div>
+        <h2 style="color:#f1f5f9; font-size:1.3rem; font-weight:700; margin:0 0 0.3rem;">LBOX 판례 리서치</h2>
+        <p style="color:#94a3b8; font-size:0.85rem; margin:0;">계속하려면 로그인하세요</p>
+      </div>
+
+      <div id="login-error" style="
+        display:none; background:#450a0a; border:1px solid #7f1d1d;
+        color:#fca5a5; border-radius:8px; padding:0.65rem 0.9rem;
+        font-size:0.82rem; margin-bottom:1rem;
+      ">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+
+      <form id="login-form" onsubmit="return false;">
+        <div style="margin-bottom:1rem;">
+          <label style="display:block; color:#94a3b8; font-size:0.8rem; margin-bottom:0.4rem;">아이디</label>
+          <input id="login-username" type="text" autocomplete="username"
+            style="width:100%; box-sizing:border-box; padding:0.65rem 0.85rem;
+              background:#0f172a; border:1px solid #334155; border-radius:8px;
+              color:#f1f5f9; font-size:0.95rem; outline:none;"
+            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'">
+        </div>
+        <div style="margin-bottom:1.5rem;">
+          <label style="display:block; color:#94a3b8; font-size:0.8rem; margin-bottom:0.4rem;">비밀번호</label>
+          <input id="login-password" type="password" autocomplete="current-password"
+            style="width:100%; box-sizing:border-box; padding:0.65rem 0.85rem;
+              background:#0f172a; border:1px solid #334155; border-radius:8px;
+              color:#f1f5f9; font-size:0.95rem; outline:none;"
+            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'">
+        </div>
+        <button id="login-btn" type="submit" onclick="doLogin()" style="
+          width:100%; padding:0.75rem;
+          background:linear-gradient(135deg,#6366f1,#8b5cf6);
+          border:none; border-radius:8px; color:#fff;
+          font-size:0.95rem; font-weight:600; cursor:pointer;
+        ">로그인</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-container" id="app-container" style="display:none;">
     <!-- Header -->
     <header class="app-header">
       <div class="brand">

@@ -27,7 +27,7 @@ class LboxAdminHandler(BaseHTTPRequestHandler):
         super().end_headers()
 
     def _dispatch(self):
-        from _server_core import handle_request, _check_auth
+        from _server_core import handle_request
 
         parsed = urlparse(self.path)
         path = parsed.path
@@ -38,15 +38,8 @@ class LboxAdminHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        # 정적 파일 (인증 포함)
+        # 정적 파일은 인증 없이 서빙 (로그인 화면이 index.html에 포함됨)
         if self.command == "GET" and path in STATIC_FILES:
-            if not _check_auth(dict(self.headers)):
-                self.send_response(401)
-                self.send_header("WWW-Authenticate", 'Basic realm="LBOX Dashboard"')
-                self.send_header("Content-Type", "text/plain; charset=utf-8")
-                self.end_headers()
-                self.wfile.write("인증이 필요합니다.".encode())
-                return
             filename, content_type = STATIC_FILES[path]
             filepath = os.path.join(BASE_DIR, filename)
             if not os.path.exists(filepath):

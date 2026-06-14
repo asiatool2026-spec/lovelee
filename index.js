@@ -1,3 +1,69 @@
+// ── 인증 토큰 관리 ──────────────────────────────
+let _authToken = sessionStorage.getItem('lbox_token') || '';
+
+function authHeaders() {
+  return _authToken ? { 'Authorization': 'Bearer ' + _authToken } : {};
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+  const errEl    = document.getElementById('login-error');
+  const btn      = document.getElementById('login-btn');
+
+  if (!username || !password) { errEl.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = '확인 중...';
+  errEl.style.display = 'none';
+
+  try {
+    const res  = await fetch('/api/login', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+
+    if (res.ok && data.token !== undefined) {
+      _authToken = data.token;
+      sessionStorage.setItem('lbox_token', _authToken);
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('app-container').style.display = '';
+      initDashboard();
+    } else {
+      errEl.style.display = 'block';
+    }
+  } catch (e) {
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '로그인';
+  }
+}
+
+// Enter 키 로그인
+document.addEventListener('DOMContentLoaded', () => {
+  ['login-username', 'login-password'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  });
+
+  // 이미 토큰이 있으면 바로 대시보드
+  if (_authToken) {
+    fetch('/api/config', { headers: authHeaders() }).then(r => {
+      if (r.ok) {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('app-container').style.display = '';
+        initDashboard();
+      } else {
+        sessionStorage.removeItem('lbox_token');
+        _authToken = '';
+      }
+    }).catch(() => {});
+  }
+});
+
 // API 및 DOM 바인딩 정의
 const API_URL = ''; // 동일 출처에서 서빙되므로 상대경로 사용
 
@@ -64,7 +130,7 @@ function setupEventListeners() {
 // 1. 인증 및 상태 조회
 async function fetchConfig() {
   try {
-    const res = await fetch('/api/config');
+    const res = await fetch('/api/config', { headers: authHeaders() });
     const data = await res.json();
     
     if (data.cookie_exists) {
@@ -98,7 +164,7 @@ async function saveConfig() {
   try {
     const res = await fetch('/api/config', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ cookie: cookieVal })
     });
     const data = await res.json();
@@ -121,7 +187,7 @@ async function saveConfig() {
 // 3. 판례 리스트 로드
 async function fetchCases() {
   try {
-    const res = await fetch('/api/cases');
+    const res = await fetch('/api/cases', { headers: authHeaders() });
     const data = await res.json();
     renderCasesTable(data.cases || []);
   } catch (err) {
@@ -188,7 +254,7 @@ async function runCrawler() {
   try {
     const res = await fetch('/api/crawl', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ keyword, limit, delay })
     });
     const data = await res.json();
@@ -223,7 +289,7 @@ function startLogPolling() {
   
   logPollingInterval = setInterval(async () => {
     try {
-      const res = await fetch('/api/logs');
+      const res = await fetch('/api/logs', { headers: authHeaders() });
       const data = await res.json();
       
       consoleLog.textContent = data.logs;
@@ -247,7 +313,7 @@ function startLogPolling() {
 // 8. 페이지 로드 시 백그라운드 크롤링 상태 복구
 async function checkAndRestoreLogPolling() {
   try {
-    const res = await fetch('/api/logs');
+    const res = await fetch('/api/logs', { headers: authHeaders() });
     const data = await res.json();
     
     if (data.logs && data.logs !== '대기 중...') {
@@ -265,7 +331,7 @@ async function checkAndRestoreLogPolling() {
 // 9. 상세 모달 열기
 async function showCaseDetail(caseId) {
   try {
-    const res = await fetch(`/api/cases/${caseId}`);
+    const res = await fetch(`/api/cases/${caseId}`, { headers: authHeaders() });
     if (!res.ok) throw new Error('판례 상세를 가져오지 못했습니다.');
     
     const data = await res.json();
@@ -309,7 +375,7 @@ async function runDiagnose() {
   diagnoseOutput.textContent = '[INFO] 엔드포인트 진단 실행 중... (최대 30초 소요)';
 
   try {
-    const res = await fetch('/api/diagnose');
+    const res = await fetch('/api/diagnose', { headers: authHeaders() });
     const data = await res.json();
     diagnoseOutput.textContent = data.output || data.message || JSON.stringify(data, null, 2);
   } catch (err) {
@@ -333,7 +399,7 @@ async function generateResearch() {
   genBtn.textContent = '생성 중...';
 
   try {
-    const res  = await fetch('/api/research');
+    const res  = await fetch('/api/research', { headers: authHeaders() });
     const data = await res.json();
 
     if (!data.document) {
