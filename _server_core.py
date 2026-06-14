@@ -37,8 +37,8 @@ os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
 # 인증
 # ──────────────────────────────────────────────
 
-DASHBOARD_USER = os.getenv("DASHBOARD_USERNAME", "admin")
-DASHBOARD_PASS = os.getenv("DASHBOARD_PASSWORD", "")
+DASHBOARD_USER = os.getenv("DASHBOARD_USERNAME", "lovelee")
+DASHBOARD_PASS = os.getenv("DASHBOARD_PASSWORD", "230107")
 
 
 def _check_auth(headers: dict) -> bool:

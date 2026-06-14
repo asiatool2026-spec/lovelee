@@ -57,7 +57,7 @@ def handler(event, context):
         }
 
     DASHBOARD_USER = os.getenv("DASHBOARD_USERNAME", "lovelee")
-    DASHBOARD_PASS = os.getenv("DASHBOARD_PASSWORD", "")
+    DASHBOARD_PASS = os.getenv("DASHBOARD_PASSWORD", "230107")
 
     # 로그인 엔드포인트 — _server_core 없이 직접 처리
     clean_path = path.split("?")[0].rstrip("/")
