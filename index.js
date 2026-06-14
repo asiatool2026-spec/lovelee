@@ -1,44 +1,25 @@
-// ── 인증 토큰 관리 ──────────────────────────────
+// ── 인증 ──────────────────────────────
+const _CREDS = { u: 'lovelee', p: '230107' };
 let _authToken = sessionStorage.getItem('lbox_token') || '';
 
 function authHeaders() {
   return _authToken ? { 'Authorization': 'Bearer ' + _authToken } : {};
 }
 
-async function doLogin() {
+function doLogin() {
   const username = document.getElementById('login-username').value.trim();
   const password = document.getElementById('login-password').value.trim();
   const errEl    = document.getElementById('login-error');
-  const btn      = document.getElementById('login-btn');
 
-  if (!username || !password) { errEl.style.display = 'block'; return; }
-
-  btn.disabled = true;
-  btn.textContent = '확인 중...';
-  errEl.style.display = 'none';
-
-  try {
-    const res  = await fetch('/api/login', {
-      method: 'POST',
-      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-
-    if (res.ok && data.token !== undefined) {
-      _authToken = data.token;
-      sessionStorage.setItem('lbox_token', _authToken);
-      document.getElementById('login-overlay').style.display = 'none';
-      document.getElementById('app-container').style.display = '';
-      initDashboard();
-    } else {
-      errEl.style.display = 'block';
-    }
-  } catch (e) {
+  if (username === _CREDS.u && password === _CREDS.p) {
+    _authToken = btoa(username + ':' + password);
+    sessionStorage.setItem('lbox_token', _authToken);
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-container').style.display = '';
+    errEl.style.display = 'none';
+    initDashboard();
+  } else {
     errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '로그인';
   }
 }
 
@@ -51,16 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 이미 토큰이 있으면 바로 대시보드
   if (_authToken) {
-    fetch('/api/config', { headers: authHeaders() }).then(r => {
-      if (r.ok) {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('app-container').style.display = '';
-        initDashboard();
-      } else {
-        sessionStorage.removeItem('lbox_token');
-        _authToken = '';
-      }
-    }).catch(() => {});
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-container').style.display = '';
+    initDashboard();
   }
 });
 
