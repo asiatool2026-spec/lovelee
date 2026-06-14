@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="엘박스(Lbox v2) 판례 전용 웹 크롤러 스크립트 제어 및 수집 판결문 시각화 대시보드">
+  <title>LBOX 판례 리서치 대시보드</title>
+  
+  <!-- Google Fonts: Outfit, Inter, Pretendard -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  
+  <!-- Tailwind CSS 또는 외부 라이브러리 없이 Vanilla CSS인 index.css 연동 -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">L</div>
+        <div class="brand-text">
+          <h1>LBOX Case Scraper</h1>
+          <p>법적 상황을 입력하면 관련 판례를 자동으로 수집·정리합니다</p>
+        </div>
+      </div>
+      <div class="system-status">
+        <div id="status-badge" class="badge badge-warning">세션 확인 중...</div>
+      </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="app-content">
+      
+      <!-- Left Column: Controls & Settings -->
+      <section class="control-panel">
+        
+        <!-- Cookie Config Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>🔑 인증 설정 (.env)</h2>
+            <span class="info-tip" title="엘박스 로그인 상태를 유지하기 위해 브라우저 개발자도구(F12)의 Cookie 헤더값을 넣어주세요.">❔</span>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="cookie-input">LBOX Cookie 값 주입</label>
+              <textarea id="cookie-input" placeholder="session_id=abc123xyz; next-auth.session-token=... 형태의 전체 쿠키값 입력"></textarea>
+            </div>
+            <button id="save-config-btn" class="btn btn-secondary">설정 저장</button>
+          </div>
+        </div>
+
+        <!-- Crawler Run Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>🔎 판례 검색 · 수집</h2>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="keyword-input">법적 상황 또는 키워드를 입력하세요</label>
+              <textarea id="keyword-input" rows="4"
+                placeholder="예: 임대재산 반환 시 을 소유 시설물의 인수를 갑에게 청구할 수 있다는 규정에 따라 인수청구를 했으므로 매매계약이 체결되었다고 주장하려 함. 관련 법리 판례를 수집하고 싶음."></textarea>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="limit-input">수집 건수</label>
+                <input type="number" id="limit-input" min="1" max="5" value="3">
+              </div>
+            </div>
+            
+            <button id="run-scraper-btn" class="btn btn-primary">판례 검색 · 수집</button>
+          </div>
+        </div>
+
+        <!-- API 진단 카드 -->
+        <div class="card">
+          <div class="card-header">
+            <h2>🔍 API 엔드포인트 진단</h2>
+            <span class="info-tip" title="쿠키 저장 후 이 버튼을 눌러 실제 API 응답 여부를 확인하세요.">❔</span>
+          </div>
+          <div class="card-body">
+            <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom: 0.75rem;">
+              크롤링 실패 시, 아래 버튼으로 엔드포인트 연결 상태를 진단하세요.<br>
+              결과를 보고 <code>.env</code>의 <code>LBOX_SEARCH_ENDPOINTS</code>를 수정하면 됩니다.
+            </p>
+            <button id="diagnose-btn" class="btn btn-outline">엔드포인트 진단 실행</button>
+            <pre id="diagnose-output" class="terminal-view" style="margin-top:0.75rem; min-height:60px; display:none;"></pre>
+          </div>
+        </div>
+
+        <!-- Terminal Log Card -->
+        <div class="card log-card">
+          <div class="card-header">
+            <h2>💻 실시간 콘솔 출력 (Stdout)</h2>
+            <button id="clear-log-btn" class="btn-text">지우기</button>
+          </div>
+          <div class="card-body log-container">
+            <pre id="console-log" class="terminal-view">대기 중... 판례 검색을 시작하면 여기에 실시간 로그가 출력됩니다.</pre>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: RAG Search + Cases List -->
+      <section class="data-panel">
+
+        <!-- 리서치 결과 카드 -->
+        <div class="card" id="research-card">
+          <div class="card-header">
+            <div>
+              <h2>📄 리서치 결과</h2>
+              <p class="subtitle">수집된 판례 원문을 종합한 1장 분량의 요약 문서입니다.</p>
+            </div>
+            <div style="display:flex; gap:0.5rem;">
+              <button id="research-gen-btn" class="btn btn-primary">문서 생성</button>
+              <button id="research-download-btn" class="btn btn-secondary" style="display:none;">TXT 저장</button>
+            </div>
+          </div>
+          <div class="card-body" id="research-body" style="display:none;">
+            <pre id="research-output" style="white-space:pre-wrap; font-family:'Pretendard', monospace; font-size:0.82rem; line-height:1.7; color:var(--text-body); background:var(--bg-main); border:1px solid var(--border); border-radius:8px; padding:1.2rem; max-height:520px; overflow-y:auto;"></pre>
+          </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="card table-card">
+          <div class="card-header table-header-area">
+            <div>
+              <h2>📚 수집된 판례 라이브러리</h2>
+              <p class="subtitle"><span id="case-count">0</span>개의 판례 데이터가 로컬에 저장됨</p>
+            </div>
+            <div class="search-filter-box">
+              <input type="text" id="search-filter" placeholder="저장된 판례 검색(사건번호, 법원 등)...">
+            </div>
+          </div>
+
+          <div class="card-body table-container">
+            <table class="case-table">
+              <thead>
+                <tr>
+                  <th>사건번호</th>
+                  <th>법원</th>
+                  <th>선고일자</th>
+                  <th>사건명</th>
+                  <th>미리보기</th>
+                  <th>액션</th>
+                </tr>
+              </thead>
+              <tbody id="cases-tbody">
+                <tr>
+                  <td colspan="6" class="td-empty">로딩 중이거나 저장된 판례가 없습니다.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- Detailed Modal Viewer -->
+  <div id="case-modal" class="modal-overlay">
+    <div class="modal-content">
+      <header class="modal-header">
+        <div>
+          <span id="modal-court" class="court-badge">대법원</span>
+          <h2 id="modal-case-number">2023다12345</h2>
+          <p id="modal-case-name" class="modal-case-name">손해배상(기)</p>
+        </div>
+        <button id="close-modal-btn" class="close-btn">&times;</button>
+      </header>
+      <div class="modal-meta-grid">
+        <div class="meta-item">
+          <span class="label">선고일자</span>
+          <span id="modal-date" class="value">2026. 06. 13</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">판례 ID</span>
+          <span id="modal-id" class="value">123456</span>
+        </div>
+      </div>
+      <div class="modal-body">
+        <h3>⚖️ 판결문 본문</h3>
+        <div id="modal-body-text" class="judgment-content">
+          본문 텍스트가 표시됩니다.
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button id="download-json-btn" class="btn btn-secondary">JSON 다운로드</button>
+        <button id="close-modal-footer-btn" class="btn btn-outline">닫기</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Vanilla JS 연동 -->
+  <script src="index.js"></script>
+</body>
+</html>

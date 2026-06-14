@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3)",
+      "Bash(python3 app.py)",
+      "Bash(curl -s http://localhost:8080/api/config)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:8080/)",
+      "Bash(curl -s http://localhost:8080/api/cases)",
+      "Bash(curl -s http://localhost:8080/api/rag/status)",
+      "Bash(curl -s http://localhost:8080/api/logs)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('status:', d['status']\\); print\\(d['logs'][:300]\\)\")",
+      "Bash(python3 -c \"import rag_engine\")",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -c \"import chromadb.utils.embedding_functions as ef; print\\(dir\\(ef\\)\\)\")",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget",
+      "Bash(python3 -c \"import _server_core; print\\('_server_core OK'\\)\")",
+      "Bash(python3 -c \"import sys; sys.path.insert\\(0,'api'\\); import importlib.util; spec=importlib.util.spec_from_file_location\\('idx','api/index.py'\\); m=importlib.util.module_from_spec\\(spec\\); spec.loader.exec_module\\(m\\); print\\('api/index.py OK'\\)\")",
+      "Bash(python3 -c \"import sys; sys.path.insert\\(0,'.'\\); spec=__import__\\('importlib'\\).util.spec_from_file_location\\('nf','netlify/functions/api.py'\\); m=__import__\\('importlib'\\).util.module_from_spec\\(spec\\); spec.loader.exec_module\\(m\\); print\\('netlify/functions/api.py OK'\\)\")",
+      "Bash(python3 -c \"from lbox_scraper import LboxScraper; s=LboxScraper\\(cookie='test', data_dir='/tmp/test'\\); print\\('data_dir:', s.data_dir\\)\")",
+      "Bash(python3 netlify/functions/api.py)",
+      "Bash(pkill -f \"python3 app.py\")",
+      "Bash(DASHBOARD_PASSWORD=testpw123 python3 app.py)",
+      "Bash(echo \"서버 PID: $!\")",
+      "Bash(sed -i '' 's/^DASHBOARD_USERNAME=.*/DASHBOARD_USERNAME=love/' .env)",
+      "Bash(sed -i '' 's/^DASHBOARD_PASSWORD=.*/DASHBOARD_PASSWORD=0107/' .env)",
+      "Bash(lsof -ti:8080)",
+      "Bash(xargs kill -9)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -u love:0107 http://localhost:8080/)",
+      "Bash(curl -s -u love:0107 http://localhost:8080/api/research)",
+      "Bash(python3 /Users/bang/Desktop/lbox_lee/app.py)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}

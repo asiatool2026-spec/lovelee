@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+data/lbox_cases/*.json
+data/chroma_db/
+.vercel/
+.netlify/
+node_modules/
+*.log
